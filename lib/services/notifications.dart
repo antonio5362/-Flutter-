@@ -1,11 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
-
+ 
 class Notifications {
   static final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   static bool _ready = false;
-
+ 
   static const _dailyDetails = NotificationDetails(
     android: AndroidNotificationDetails(
       'daily_reminder',
@@ -15,7 +15,7 @@ class Notifications {
       priority: Priority.defaultPriority,
     ),
   );
-
+ 
   static const _timerDetails = NotificationDetails(
     android: AndroidNotificationDetails(
       'timer_done',
@@ -25,7 +25,7 @@ class Notifications {
       priority: Priority.high,
     ),
   );
-
+ 
   static Future<void> init() async {
     try {
       const android = AndroidInitializationSettings('ic_notification');
@@ -35,7 +35,7 @@ class Notifications {
       debugPrint('Уведомления не запустились: $e');
     }
   }
-
+ 
   static Future<bool> requestPermission() async {
     try {
       final impl = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -46,12 +46,12 @@ class Notifications {
       return false;
     }
   }
-
+ 
   static tz.TZDateTime _utc(DateTime local) {
     final u = local.toUtc();
     return tz.TZDateTime.utc(u.year, u.month, u.day, u.hour, u.minute, u.second);
   }
-
+ 
   /// Ежедневное напоминание. Если сегодня уже занимались — первое придёт завтра.
   static Future<void> scheduleDaily(int minutes, {bool skipToday = false}) async {
     if (!_ready) return;
@@ -68,20 +68,21 @@ class Notifications {
         _utc(t),
         _dailyDetails,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         matchDateTimeComponents: DateTimeComponents.time,
       );
     } catch (e) {
       debugPrint('Не удалось запланировать напоминание: $e');
     }
   }
-
+ 
   static Future<void> cancelDaily() async {
     if (!_ready) return;
     try {
       await _plugin.cancel(1);
     } catch (_) {}
   }
-
+ 
   static Future<void> scheduleTimerEnd(DateTime when, String text) async {
     if (!_ready) return;
     try {
@@ -92,12 +93,13 @@ class Notifications {
         _utc(when),
         _timerDetails,
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
       );
     } catch (e) {
       debugPrint('Не удалось запланировать таймер: $e');
     }
   }
-
+ 
   static Future<void> cancelTimerEnd() async {
     if (!_ready) return;
     try {
